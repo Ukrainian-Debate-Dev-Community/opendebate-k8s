@@ -9,3 +9,6 @@ rules:
   comments:
     min-spaces-from-content: 1
   comments-indentation: disable
+  document-start: disable
+  indentation:
+    indent-sequences: consistent
