@@ -1,3 +1,4 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -6,19 +7,22 @@ metadata:
 spec:
   generators:
     - list:
-        elements: []
+        elements:
+          - name: api-dev
+            path: apps/api
+            namespace: dev
   template:
     metadata:
-      name: '{{name}}'
+      name: "{{name}}"
     spec:
       project: default
       source:
         repoURL: https://github.com/Ukrainian-Debate-Dev-Community/opendebate-k8s
         targetRevision: HEAD
-        path: '{{path}}'
+        path: "{{path}}"
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{namespace}}'
+        namespace: "{{namespace}}"
       syncPolicy:
         automated:
           prune: true
