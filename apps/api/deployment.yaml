@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: ghcr.io/Ukrainian-Debate-Dev-Community/opendebate-api:sha-e09b38a
+          image: ghcr.io/ukrainian-debate-dev-community/opendebate-api:sha-e09b38a
           ports:
             - name: http
               containerPort: 3000
