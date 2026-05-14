@@ -1,0 +1,74 @@
+---
+name: Validate Konfiguration
+
+"on":
+  pull_request:
+    paths:
+      - "apps/**"
+      - "argocd/**"
+      - ".github/workflows/validate.yml"
+      - ".yamllint"
+  push:
+    paths:
+      - "apps/**"
+      - "argocd/**"
+      - ".github/workflows/validate.yml"
+      - ".yamllint"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: validate-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends yamllint
+
+      - name: yamllint
+        run: yamllint apps/ argocd/
+
+      - name: Set up kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Install kubeconform
+        run: |
+          VERSION=v0.6.7
+          URL="https://github.com/yannh/kubeconform/releases/download/${VERSION}/kubeconform-linux-amd64.tar.gz"
+          curl -sSL "${URL}" | tar -xz -C "${RUNNER_TEMP}" kubeconform
+          echo "${RUNNER_TEMP}" >> "${GITHUB_PATH}"
+
+      - name: Cache kubeconform schemas
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/kubeconform
+          key: kubeconform-schemas-${{ hashFiles('apps/**/*.yaml') }}
+          restore-keys: kubeconform-schemas-
+
+      - name: Build & validate each app
+        run: |
+          set -euo pipefail
+          K8S_VER="1.31.0"
+          CRD_SCHEMA='https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+          CACHE_DIR="${HOME}/.cache/kubeconform"
+          mkdir -p "${CACHE_DIR}"
+          failed=0
+          for dir in apps/*/; do
+            echo "::group::Validating ${dir}"
+            if ! kustomize build "${dir}" \
+              | kubeconform \
+                  -kubernetes-version "${K8S_VER}" \
+                  -cache "${CACHE_DIR}" \
+                  -strict \
+                  -summary \
+                  -schema-location default \
+                  -schema-location "${CRD_SCHEMA}" \
+                  -ignore-missing-schemas
+            then
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit "${failed}"
