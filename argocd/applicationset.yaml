@@ -18,7 +18,7 @@ spec:
       project: default
       source:
         repoURL: https://github.com/Ukrainian-Debate-Dev-Community/opendebate-k8s
-        targetRevision: HEAD
+        targetRevision: main
         path: "{{path}}"
       destination:
         server: https://kubernetes.default.svc
