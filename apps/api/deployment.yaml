@@ -22,6 +22,42 @@ spec:
           ports:
             - name: http
               containerPort: 3000
-          envFrom:
-            - secretRef:
-                name: postgres-app
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: host }
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: port }
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: username }
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: password }
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: dbname }
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef: { name: api-secrets, key: jwt-secret }
+            - name: JWT_EXPIRES_IN
+              valueFrom:
+                secretKeyRef: { name: api-secrets, key: jwt-expires-in }
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
