@@ -44,3 +44,20 @@ spec:
             - name: JWT_EXPIRES_IN
               valueFrom:
                 secretKeyRef: { name: api-secrets, key: jwt-expires-in }
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
