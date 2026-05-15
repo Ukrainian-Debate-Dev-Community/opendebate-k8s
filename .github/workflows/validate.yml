@@ -23,7 +23,7 @@ jobs:
         run: yamllint apps/ argocd/
 
       - name: Set up kustomize
-        uses: imranismail/setup-kustomize@v2
+        uses: imranismail/setup-kustomize@53f941b41dca13ed61874bbc6b4b6e1562877530  # v3.0.0
 
       - name: Install kubeconform
         run: |
