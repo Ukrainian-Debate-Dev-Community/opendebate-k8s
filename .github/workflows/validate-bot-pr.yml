@@ -71,10 +71,12 @@ jobs:
           echo "Bot PR passes image-bump-only allowlist."
 
   auto-approve:
-    # Approves the PR (under github-actions[bot] identity, which is distinct
-    # from the PR author opendebate-bot) and enables auto-merge. The ruleset
-    # still requires the validate-bot-pr status check + 1 approval; this job
-    # supplies the approval. dismiss_stale_reviews_on_push + this workflow's
+    # Approves the PR under github-actions[bot] (distinct from PR author
+    # opendebate-bot, so self-approval restriction is satisfied), then enables
+    # auto-merge using an opendebate-bot App token. The merge must run as the
+    # App because main-protection's bypass_actors only grants pull_request
+    # bypass to the App — github-actions[bot] has no bypass and would be
+    # blocked by CODEOWNERS. dismiss_stale_reviews_on_push + this workflow's
     # pull_request trigger means each new push re-runs and re-approves.
     needs: validate-bot-pr
     if: github.event.pull_request.user.login == 'opendebate-bot[bot]'
@@ -92,9 +94,16 @@ jobs:
             --approve \
             --body "Auto-approved: image-bump diff allowlist passed."
 
+      - name: Mint opendebate-bot installation token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+
       - name: Enable auto-merge (squash)
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh pr merge "${{ github.event.pull_request.number }}" \
             -R "${{ github.repository }}" \
