@@ -1,0 +1,101 @@
+---
+name: validate-bot-pr
+
+# Required status check on main (see .github/rulesets/main-protection.json).
+# Purpose: gate bot PRs to image-bump-only diffs. Human PRs pass through;
+# they are gated by CODEOWNERS review instead.
+
+"on":
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-bot-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce bot diff allowlist
+        env:
+          BOT_LOGIN: opendebate-bot
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          if [ "${PR_AUTHOR}" != "${BOT_LOGIN}" ]; then
+            echo "PR author is ${PR_AUTHOR} (human) — gate not enforced; CODEOWNERS review applies."
+            exit 0
+          fi
+
+          echo "PR author is ${BOT_LOGIN} — enforcing image-bump-only allowlist."
+
+          # 1. Every changed file must match apps/*/kustomization.yaml
+          mapfile -t changed < <(git diff --name-only "${BASE_SHA}" "${HEAD_SHA}")
+          if [ "${#changed[@]}" -eq 0 ]; then
+            echo "No files changed — rejecting empty bot PR."
+            exit 1
+          fi
+
+          for f in "${changed[@]}"; do
+            if [[ ! "${f}" =~ ^apps/[^/]+/kustomization\.yaml$ ]]; then
+              echo "Disallowed file in bot PR: ${f}"
+              echo "Bot is only permitted to modify apps/*/kustomization.yaml"
+              exit 1
+            fi
+          done
+
+          # 2. Within those files, only newTag: lines may change.
+          # Diff lines starting with + or - (ignoring file headers and hunks)
+          # must be 'newTag:' assignments.
+          bad="$(
+            git diff -U0 "${BASE_SHA}" "${HEAD_SHA}" -- 'apps/*/kustomization.yaml' \
+              | grep -E '^[+-][^+-]' \
+              | grep -Ev '^[+-]\s*newTag:\s*\S+\s*$' \
+              || true
+          )"
+          if [ -n "${bad}" ]; then
+            echo "Bot PR contains disallowed line changes:"
+            echo "${bad}"
+            echo "Only 'newTag:' lines may change."
+            exit 1
+          fi
+
+          echo "Bot PR passes image-bump-only allowlist."
+
+  auto-approve:
+    # Approves the PR (under github-actions[bot] identity, which is distinct
+    # from the PR author opendebate-bot) and enables auto-merge. The ruleset
+    # still requires the validate-bot-pr status check + 1 approval; this job
+    # supplies the approval. dismiss_stale_reviews_on_push + this workflow's
+    # pull_request trigger means each new push re-runs and re-approves.
+    needs: validate-bot-pr
+    if: github.event.pull_request.user.login == 'opendebate-bot'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Approve PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr review "${{ github.event.pull_request.number }}" \
+            -R "${{ github.repository }}" \
+            --approve \
+            --body "Auto-approved: image-bump diff allowlist passed."
+
+      - name: Enable auto-merge (squash)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge "${{ github.event.pull_request.number }}" \
+            -R "${{ github.repository }}" \
+            --auto --squash --delete-branch

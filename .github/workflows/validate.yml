@@ -3,17 +3,9 @@ name: Validate Konfiguration
 
 "on":
   pull_request:
-    paths:
-      - "apps/**"
-      - "argocd/**"
-      - ".github/workflows/validate.yml"
-      - ".yamllint"
+    branches: [main]
   push:
-    paths:
-      - "apps/**"
-      - "argocd/**"
-      - ".github/workflows/validate.yml"
-      - ".yamllint"
+    branches: [main]
 
 jobs:
   validate:
