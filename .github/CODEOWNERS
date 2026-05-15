@@ -1,0 +1,13 @@
+# All changes require review from a maintainer by default.
+# Bot PRs that only bump image tags are allowlisted by the
+# validate-bot-pr workflow (required status check), so they
+# pass without a CODEOWNERS reviewer.
+
+* @thefirstarcher
+
+# Platform-critical paths — keep explicit even though * already
+# covers them, so future CODEOWNERS additions don't accidentally
+# loosen review on Argo CD config.
+/argocd/                       @thefirstarcher
+/apps/*/kustomization.yaml     @thefirstarcher
+/.github/                      @thefirstarcher
