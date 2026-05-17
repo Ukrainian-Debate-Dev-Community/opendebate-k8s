@@ -105,12 +105,18 @@ jobs:
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
 
       - name: Squash-merge as opendebate-bot
+        # Call the REST merge endpoint directly. `gh pr merge` preflights
+        # via GraphQL mergePullRequest, which refuses when mergeStateStatus
+        # is BLOCKED without consulting bypass_actors. The REST PUT /merge
+        # endpoint honors the App's bypass and goes through.
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          gh pr merge "${PR_NUMBER}" \
-            -R "${{ github.repository }}" \
-            --squash --delete-branch \
-            --match-head-commit "${HEAD_SHA}"
+          gh api -X PUT \
+            "repos/${{ github.repository }}/pulls/${PR_NUMBER}/merge" \
+            -f merge_method=squash \
+            -f sha="${HEAD_SHA}"
+          gh api -X DELETE \
+            "repos/${{ github.repository }}/git/refs/heads/${{ github.event.pull_request.head.ref }}"
