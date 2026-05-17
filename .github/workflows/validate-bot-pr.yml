@@ -72,12 +72,15 @@ jobs:
 
   auto-approve:
     # Approves the PR under github-actions[bot] (distinct from PR author
-    # opendebate-bot, so self-approval restriction is satisfied), then enables
-    # auto-merge using an opendebate-bot App token. The merge must run as the
-    # App because main-protection's bypass_actors only grants pull_request
-    # bypass to the App — github-actions[bot] has no bypass and would be
-    # blocked by CODEOWNERS. dismiss_stale_reviews_on_push + this workflow's
-    # pull_request trigger means each new push re-runs and re-approves.
+    # opendebate-bot, so self-approval restriction is satisfied) for audit
+    # trail, then performs a direct squash-merge as the opendebate-bot App.
+    # Direct merge (not --auto) is required: GitHub's background auto-merge
+    # only fires when mergeStateStatus is CLEAN and does not consult
+    # bypass_actors, so it would stall at BLOCKED on the CODEOWNERS rule.
+    # A direct merge API call as the App engages main-protection's
+    # pull_request bypass for the opendebate-bot Integration and goes
+    # through. dismiss_stale_reviews_on_push + this workflow's pull_request
+    # trigger means each new push re-runs and re-approves.
     needs: validate-bot-pr
     if: github.event.pull_request.user.login == 'opendebate-bot[bot]'
     runs-on: ubuntu-latest
@@ -101,10 +104,19 @@ jobs:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
 
-      - name: Enable auto-merge (squash)
+      - name: Squash-merge as opendebate-bot
+        # Call the REST merge endpoint directly. `gh pr merge` preflights
+        # via GraphQL mergePullRequest, which refuses when mergeStateStatus
+        # is BLOCKED without consulting bypass_actors. The REST PUT /merge
+        # endpoint honors the App's bypass and goes through.
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          gh pr merge "${{ github.event.pull_request.number }}" \
-            -R "${{ github.repository }}" \
-            --auto --squash --delete-branch
+          gh api -X PUT \
+            "repos/${{ github.repository }}/pulls/${PR_NUMBER}/merge" \
+            -f merge_method=squash \
+            -f sha="${HEAD_SHA}"
+          gh api -X DELETE \
+            "repos/${{ github.repository }}/git/refs/heads/${{ github.event.pull_request.head.ref }}"
