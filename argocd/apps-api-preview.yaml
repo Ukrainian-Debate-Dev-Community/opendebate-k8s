@@ -35,7 +35,7 @@ spec:
         path: "apps/api"
         kustomize:
           images:
-            - ghcr.io/ukrainian-debate-dev-community/opendebate-api:sha-{{.head_short_sha}}
+            - ghcr.io/ukrainian-debate-dev-community/opendebate-api:sha-{{.head_short_sha_7}}
           patches:
             - target:
                 kind: HTTPRoute
