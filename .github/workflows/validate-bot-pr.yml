@@ -23,7 +23,7 @@ jobs:
 
       - name: Enforce bot diff allowlist
         env:
-          BOT_LOGIN: opendebate-bot[bot]
+          BOT_LOGIN: opendebate-bump[bot]
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -72,17 +72,17 @@ jobs:
 
   auto-approve:
     # Approves the PR under github-actions[bot] (distinct from PR author
-    # opendebate-bot, so self-approval restriction is satisfied) for audit
-    # trail, then performs a direct squash-merge as the opendebate-bot App.
+    # opendebate-bump[bot], so self-approval restriction is satisfied) for audit
+    # trail, then performs a direct squash-merge as the opendebate-bump[bot] App.
     # Direct merge (not --auto) is required: GitHub's background auto-merge
     # only fires when mergeStateStatus is CLEAN and does not consult
     # bypass_actors, so it would stall at BLOCKED on the CODEOWNERS rule.
     # A direct merge API call as the App engages main-protection's
-    # pull_request bypass for the opendebate-bot Integration and goes
+    # pull_request bypass for the opendebate-bump[bot] Integration and goes
     # through. dismiss_stale_reviews_on_push + this workflow's pull_request
     # trigger means each new push re-runs and re-approves.
     needs: validate-bot-pr
-    if: github.event.pull_request.user.login == 'opendebate-bot[bot]'
+    if: github.event.pull_request.user.login == 'opendebate-bump[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -97,14 +97,14 @@ jobs:
             --approve \
             --body "Auto-approved: image-bump diff allowlist passed."
 
-      - name: Mint opendebate-bot installation token
+      - name: Mint opendebate-bump[bot] installation token
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.BUMP_APP_ID }}
+          private-key: ${{ secrets.BUMP_APP_PRIVATE_KEY }}
 
-      - name: Squash-merge as opendebate-bot
+      - name: Squash-merge as opendebate-bump[bot]
         # Call the REST merge endpoint directly. `gh pr merge` preflights
         # via GraphQL mergePullRequest, which refuses when mergeStateStatus
         # is BLOCKED without consulting bypass_actors. The REST PUT /merge
