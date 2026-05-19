@@ -15,7 +15,11 @@ spec:
       namespace: argocd
       sectionName: http-prod
   rules:
-    - filters:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
