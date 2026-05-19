@@ -8,4 +8,4 @@ resources:
 images:
 - name: ghcr.io/ukrainian-debate-dev-community/opendebate-api
   newName: ghcr.io/ukrainian-debate-dev-community/opendebate-api
-  newTag: sha-5d5ebf3
+  newTag: sha-c8de6f1
