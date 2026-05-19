@@ -1,6 +1,11 @@
 ---
 extends: default
 
+# SealedSecret encryptedData fields are base64 blobs that can't be wrapped
+# without breaking decryption. Skip yamllint entirely on those files.
+ignore: |
+  **/*.sealedsecret.yaml
+
 rules:
   line-length:
     max: 140
