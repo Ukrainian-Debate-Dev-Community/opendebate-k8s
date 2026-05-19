@@ -32,7 +32,7 @@ spec:
       source:
         repoURL: https://github.com/Ukrainian-Debate-Dev-Community/opendebate-k8s
         targetRevision: HEAD
-        path: "apps/api"
+        path: "apps/api-preview"
         kustomize:
           images:
             - ghcr.io/ukrainian-debate-dev-community/opendebate-api:sha-{{.head_short_sha_7}}

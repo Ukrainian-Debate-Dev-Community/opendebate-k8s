@@ -11,7 +11,7 @@ spec:
     - list:
         elements:
           - name: api-dev
-            path: apps/api
+            path: apps/api-dev
             namespace: dev
   template:
     metadata:
