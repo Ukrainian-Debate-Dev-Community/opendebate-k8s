@@ -1,0 +1,31 @@
+---
+# Adopts the existing letsencrypt-prod ClusterIssuer into GitOps and adds
+# a DNS-01 (Cloudflare) solver scoped to cab.uadebate.com so wildcard
+# certs for *.cab.uadebate.com can be issued. HTTP-01 remains as the
+# default solver for the existing per-host certs (argocd/dev/prod-tls).
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: xonwing@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod-private-key
+    solvers:
+      - selector:
+          dnsZones:
+            - cab.uadebate.com
+        dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+      - http01:
+          gatewayHTTPRoute:
+            parentRefs:
+              - group: gateway.networking.k8s.io
+                kind: Gateway
+                name: eg
+                namespace: argocd

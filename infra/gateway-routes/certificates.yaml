@@ -36,3 +36,16 @@ spec:
     kind: ClusterIssuer
   dnsNames:
     - cab.uadebate.com
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: preview-tls
+  namespace: argocd
+spec:
+  secretName: preview-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.cab.uadebate.com"

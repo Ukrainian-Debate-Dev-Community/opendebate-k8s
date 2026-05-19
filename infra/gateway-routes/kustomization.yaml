@@ -4,4 +4,6 @@ resources:
   - gateway.yaml
   - argocd-httproute.yaml
   - http-to-https-redirect.yaml
+  - cloudflare-api-token.sealedsecret.yaml
+  - cluster-issuer.yaml
   - certificates.yaml

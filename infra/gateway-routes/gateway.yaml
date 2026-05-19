@@ -74,3 +74,16 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: https-preview
+      hostname: "*.cab.uadebate.com"
+      port: 443
+      protocol: HTTPS
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: preview-tls
+            namespace: argocd
