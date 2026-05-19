@@ -1,0 +1,22 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: http-to-https
+  namespace: argocd
+spec:
+  parentRefs:
+    - name: eg
+      namespace: argocd
+      sectionName: http-dev
+    - name: eg
+      namespace: argocd
+      sectionName: http-argocd
+    - name: eg
+      namespace: argocd
+      sectionName: http-prod
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301

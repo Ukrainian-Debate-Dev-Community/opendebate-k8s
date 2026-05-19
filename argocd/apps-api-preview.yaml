@@ -1,0 +1,53 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps-api-preview
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - pullRequest:
+        github:
+          # The GitHub organization or user.
+          owner: Ukrainian-Debate-Dev-Community
+          # The Github repository
+          repo: opendebate-dev
+          # For GitHub Enterprise (optional)
+          # api: https://git.example.com/
+          # (optional) use a GitHub App to access the API instead of a PAT.
+          appSecretName: github-app-repo-creds
+          # Labels is used to filter the PRs that you want to target. (optional)
+          labels:
+            - preview
+        requeueAfterSeconds: 1800
+  template:
+    metadata:
+      name: "api-pr-{{.number}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/Ukrainian-Debate-Dev-Community/opendebate-k8s
+        targetRevision: HEAD
+        path: "apps/api"
+        kustomize:
+          images:
+            - ghcr.io/ukrainian-debate-dev-community/opendebate-api:sha-{{.head_short_sha}}
+          patches:
+            - target:
+                kind: HTTPRoute
+                name: api
+              patch: |-
+                - op: replace
+                  path: /spec/hostnames/0
+                  value: api-pr-{{.number}}.cab.uadebate.com
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "api-pr-{{.number}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

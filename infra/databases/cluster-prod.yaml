@@ -1,0 +1,10 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: prod
+spec:
+  instances: 1
+  storage:
+    storageClass: hcloud-volumes-retain
+    size: 10Gi

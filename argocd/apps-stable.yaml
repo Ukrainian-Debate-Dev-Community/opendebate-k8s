@@ -2,9 +2,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: apps
+  name: apps-stable
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
     - list:
         elements:
@@ -13,16 +15,16 @@ spec:
             namespace: dev
   template:
     metadata:
-      name: "{{name}}"
+      name: "{{.name}}"
     spec:
       project: default
       source:
         repoURL: https://github.com/Ukrainian-Debate-Dev-Community/opendebate-k8s
-        targetRevision: main
-        path: "{{path}}"
+        targetRevision: HEAD
+        path: "{{.path}}"
       destination:
         server: https://kubernetes.default.svc
-        namespace: "{{namespace}}"
+        namespace: "{{.namespace}}"
       syncPolicy:
         automated:
           prune: true
