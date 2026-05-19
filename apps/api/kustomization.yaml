@@ -4,6 +4,7 @@ resources:
 - deployment.yaml
 - service.yaml
 - httproute.yaml
+- api-secrets.sealedsecret.yaml
 images:
 - name: ghcr.io/ukrainian-debate-dev-community/opendebate-api
   newName: ghcr.io/ukrainian-debate-dev-community/opendebate-api
