@@ -52,12 +52,16 @@ spec:
               cpu: 500m
               memory: 512Mi
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /readyz
               port: http
             initialDelaySeconds: 3
             periodSeconds: 5
+            failureThreshold: 3
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /healthz
               port: http
             initialDelaySeconds: 15
             periodSeconds: 20
+            failureThreshold: 3
