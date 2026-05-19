@@ -5,3 +5,8 @@ resources:
   - ../api
   - cluster.yaml
   - api-secrets.sealedsecret.yaml
+patches:
+  - path: migrate-init.patch.yaml
+    target:
+      kind: Deployment
+      name: api

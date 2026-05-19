@@ -1,0 +1,43 @@
+---
+# Preview-only: run Sequelize migrations against the per-PR CNPG cluster
+# before the app container starts. Dev/prod schemas are managed out-of-band
+# and intentionally untouched by this patch.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: migrate
+          image: ghcr.io/ukrainian-debate-dev-community/opendebate-api
+          command:
+            - npx
+            - sequelize-cli
+            - db:migrate
+            - --env
+            - production
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: host }
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: port }
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: username }
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: password }
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef: { name: postgres-app, key: dbname }
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
