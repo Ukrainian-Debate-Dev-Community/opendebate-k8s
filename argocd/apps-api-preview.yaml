@@ -44,6 +44,9 @@ spec:
                 - op: replace
                   path: /spec/hostnames/0
                   value: api-pr-{{.number}}.cab.uadebate.com
+                - op: replace
+                  path: /spec/parentRefs/0/sectionName
+                  value: http-preview
       destination:
         server: https://kubernetes.default.svc
         namespace: "api-pr-{{.number}}"

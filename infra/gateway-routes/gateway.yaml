@@ -1,0 +1,76 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: eg
+  namespace: argocd
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: http-argocd
+      hostname: argocd.cab.uadebate.com
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-argocd
+      hostname: argocd.cab.uadebate.com
+      port: 443
+      protocol: HTTPS
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: argocd-tls
+            namespace: argocd
+    - name: http-dev
+      hostname: dev.cab.uadebate.com
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-dev
+      hostname: dev.cab.uadebate.com
+      port: 443
+      protocol: HTTPS
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: dev-tls
+            namespace: argocd
+    - name: http-prod
+      hostname: cab.uadebate.com
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-prod
+      hostname: cab.uadebate.com
+      port: 443
+      protocol: HTTPS
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: prod-tls
+            namespace: argocd
+    - name: http-preview
+      hostname: "*.cab.uadebate.com"
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
