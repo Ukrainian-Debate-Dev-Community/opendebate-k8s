@@ -24,7 +24,8 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: argocd-tls
             namespace: argocd
     - name: http-dev
@@ -44,7 +45,8 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: dev-tls
             namespace: argocd
     - name: http-prod
@@ -64,7 +66,8 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: prod-tls
             namespace: argocd
     - name: http-preview
@@ -84,6 +87,7 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: preview-tls
             namespace: argocd
