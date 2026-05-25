@@ -21,3 +21,22 @@ spec:
       backendRefs:
         - name: api
           port: 80
+      filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: Strict-Transport-Security
+                value: "max-age=63072000; includeSubDomains; preload"
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: api
+          port: 80
+      filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: Strict-Transport-Security
+                value: "max-age=63072000; includeSubDomains; preload"
